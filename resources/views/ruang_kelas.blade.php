@@ -9,8 +9,6 @@
   <style>
     body, h1, h2, h3, h4, h5 { font-family: "Poppins", sans-serif; }
     body { font-size: 16px; }
-    .w3-half img { margin-bottom: -6px; margin-top: 16px; opacity: 0.8; cursor: pointer; }
-    .w3-half img:hover { opacity: 1; }
 
     /* CSS for header */
     .w3-header {
@@ -20,11 +18,28 @@
       z-index: 1000;
     }
 
-    /* Adding some top margin for the main content */
+    /* Main content style */
     .w3-main {
-      margin-top: 80px;
-      background-color: #f4f4f4;
-      padding: 20px;
+      margin-top: 40px; /* Ensure main content starts below the navbar */
+      padding: 25px;
+      background-color: #eaeaead1; /* Background color of the main content */
+      transition: margin-left 0.3s ease;
+      margin-left: 0; /* Default margin for main content */
+      width: calc(100% - 0); /* Full width minus sidebar */
+    }
+
+    /* Sidebar style */
+    .w3-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 280px; /* Width of the sidebar */
+      height: 100%;
+      background-color: #333;
+      color: white;
+      padding-top: 60px;
+      transition: transform 0.3s ease;
+      transform: translateX(-100%); /* Hide sidebar initially */
     }
 
     /* Custom marina color for navbar */
@@ -33,45 +48,67 @@
       color: white;
     }
 
-    /* Styling for active button */
-    .active-button {
-      background-color: #c0c0c0; /* Light grey color for active state */
+    /* Show sidebar when toggled */
+    .w3-sidebar-visible {
+      transform: translateX(0);
+    }
+
+    /* Profile section styling */
+    .profile-section {
+      text-align: center;
+      margin: 20px 0;
+    }
+
+    .btn-profile {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #ff5722; /* Button color */
+      color: white; /* Button text color */
+      border-radius: 5px; /* Rounded corners */
+      text-decoration: none; /* Remove underline */
+      transition: background-color 0.3s ease; /* Smooth background transition */
+    }
+
+    .btn-profile:hover {
+      background-color: #e64a19; /* Darker shade on hover */
+    }
+    
+    .profile-image {
+      width: 150px; /* Set the desired width */
+      height: 150px; /* Set the desired height */
     }
   </style>
 </head>
 <body>
 
-<!-- Overlay effect when opening sidebar on small screens -->
-<div class="w3-overlay" onclick="w3_close()" style="cursor:pointer; display:none;" title="close side menu" id="myOverlay"></div>
-
 <!-- Navbar -->
 <header class="w3-container w3-marina w3-large w3-header">
-  <a href="javascript:void(0)" class="w3-button w3-margin-right sidebar-toggle-btn" onclick="toggleSidebar()">☰</a>
-  <span>Back to Menu</span>
+  <a href="javascript:void(0)" class="w3-button w3-margin-right" onclick="toggleSidebar()">☰</a>
+  <a href="{{ route('dashboard_bagAkademik') }}" class="w3-button w3-margin-right" style="text-decoration: none;">Back to Menu</a>
 </header>
 
 <!-- Sidebar/menu -->
-<nav class="w3-sidebar w3-dark-gray w3-collapse w3-top w3-large w3-padding" style="z-index:3; width:300px; font-weight:bold; display:none;" id="mySidebar">
-  <br>
-  <a href="javascript:void(0)" onclick="w3_close()" class="w3-button w3-display-topleft" style="width:100%; font-size:22px">Close Menu</a>
+<nav class="w3-sidebar w3-dark-gray w3-large" id="mySidebar">
   <br><br>
-  <p class="w3-center">
-    <div class="circle-background">
-      <img src="/img/avatar.png" class="w3-circle" style="height:106px; width:106px;" alt="Avatar">
-    </div>
-  </p>
-  <h4 class="w3-center w3-orange w3-hover-white">Lihat Profil</h4>
+  <div class="profile-section">
+    <img src="https://via.placeholder.com/150" alt="Profile Picture" class="w3-circle profile-image">
+    <br>
+    <br>
+    <a href="#" class="btn-profile">Lihat Profil</a>
+  </div>
+  
+  <br>
   <div class="w3-bar-block">
-    <a href="#" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Dashboard</a> 
-    <a href="#ruangkelas" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Ruang Kelas</a> 
-    <a href="#kapasitas" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Kapasitas</a> 
-    <a href="#aksespengguna" onclick="w3_close()" class="w3-bar-item w3-button w3-hover-white">Akses Pengguna</a> 
+    <a href="{{ route('dashboard_bagAkademik') }}" class="w3-bar-item w3-button w3-hover-white">Dashboard</a> 
+    <a href="{{ route('ruang_kelas') }}" class="w3-bar-item w3-button w3-hover-white">Ruang Kelas</a> 
+    <a href="{{ route('kapasitas') }}" class="w3-bar-item w3-button w3-hover-white">Kapasitas</a> 
+    <a href="{{ route('akses_pengguna') }}" class="w3-bar-item w3-button w3-hover-white">Akses Pengguna</a> 
   </div>
 </nav>
 
 <!-- Main Content -->
-<div class="w3-main" style="margin-left:340px; margin-right:40px;">
-  <h1 class="w3-text-gray"><b>RUANG KELAS</b></h1>
+<div class="w3-main" id="mainContent">
+  <h3 class="w3-text-gray"><b>RUANG KELAS</b></h3>
   <!-- Your content goes here -->
 </div>
 
@@ -79,32 +116,19 @@
 let isSidebarOpen = false;
 
 function toggleSidebar() {
-  const toggleButton = document.querySelector('.sidebar-toggle-btn');
+  const sidebar = document.getElementById("mySidebar");
+  const mainContent = document.getElementById("mainContent");
+
   if (isSidebarOpen) {
-    w3_close();
-    toggleButton.classList.remove('active-button');
+    sidebar.classList.remove("w3-sidebar-visible"); // Hide sidebar
+    mainContent.style.marginLeft = "0"; // Reset main content margin
   } else {
-    w3_open();
-    toggleButton.classList.add('active-button');
+    sidebar.classList.add("w3-sidebar-visible"); // Show sidebar
+    mainContent.style.marginLeft = "280px"; // Adjust main content for sidebar width
   }
-}
 
-function w3_open() {
-  document.getElementById("mySidebar").style.display = "block";
-  document.getElementById("myOverlay").style.display = "block";
-  isSidebarOpen = true;
+  isSidebarOpen = !isSidebarOpen;
 }
-
-function w3_close() {
-  document.getElementById("mySidebar").style.display = "none";
-  document.getElementById("myOverlay").style.display = "none";
-  isSidebarOpen = false;
-}
-
-// Close the sidebar when the overlay is clicked
-document.getElementById("myOverlay").onclick = function() {
-  w3_close();
-};
 </script>
 
 </body>
